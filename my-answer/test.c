@@ -20,55 +20,39 @@ static int test_pass = 0;
 
 #define EXPECT_EQ_INT(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual, "%d")
 
+#define TEST(s, r, t) \   
+    do {\
+        lept_value v;\
+        v.type = LEPT_NULL;\
+        EXPECT_EQ_INT(r, lept_parse(&v, s));\
+        EXPECT_EQ_INT(t, lept_get_type(&v));\
+    } while(0)
+    
+
 static void test_parse_null() {
-    lept_value v;
-    v.type = LEPT_FALSE;
-    EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, "null"));
-    EXPECT_EQ_INT(LEPT_NULL, lept_get_type(&v));
+    TEST("null", LEPT_PARSE_OK, LEPT_NULL);
 }
 
 static void test_parse_true() {
-    lept_value v;
-    v.type = LEPT_FALSE;
-    EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, "true"));
-    EXPECT_EQ_INT(LEPT_TRUE, lept_get_type(&v));
+    TEST("true", LEPT_PARSE_OK, LEPT_TRUE);
 }
 
 static void test_parse_false() {
-    lept_value v;
-    v.type = LEPT_FALSE;
-    EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, "false"));
-    EXPECT_EQ_INT(LEPT_FALSE, lept_get_type(&v));
+    TEST("false", LEPT_PARSE_OK, LEPT_FALSE);
 }
 
 static void test_parse_expect_value() {
-    lept_value v;
-
-    v.type = LEPT_FALSE;
-    EXPECT_EQ_INT(LEPT_PARSE_EXPECT_VALUE, lept_parse(&v, ""));
-    EXPECT_EQ_INT(LEPT_NULL, lept_get_type(&v));
-
-    v.type = LEPT_FALSE;
-    EXPECT_EQ_INT(LEPT_PARSE_EXPECT_VALUE, lept_parse(&v, " "));
-    EXPECT_EQ_INT(LEPT_NULL, lept_get_type(&v));
+    TEST("", LEPT_PARSE_EXPECT_VALUE, LEPT_NULL);
+    TEST(" ", LEPT_PARSE_EXPECT_VALUE, LEPT_NULL);
 }
 
 static void test_parse_invalid_value() {
-    lept_value v;
-    v.type = LEPT_FALSE;
-    EXPECT_EQ_INT(LEPT_PARSE_INVALID_VALUE, lept_parse(&v, "nul"));
-    EXPECT_EQ_INT(LEPT_NULL, lept_get_type(&v));
-
-    v.type = LEPT_FALSE;
-    EXPECT_EQ_INT(LEPT_PARSE_INVALID_VALUE, lept_parse(&v, "?"));
-    EXPECT_EQ_INT(LEPT_NULL, lept_get_type(&v));
+    TEST("nul", LEPT_PARSE_INVALID_VALUE, LEPT_NULL);
+    TEST("?", LEPT_PARSE_INVALID_VALUE, LEPT_NULL);
 }
 
 static void test_parse_root_not_singular() {
-    lept_value v;
-    v.type = LEPT_FALSE;
-    EXPECT_EQ_INT(LEPT_PARSE_ROOT_NOT_SINGULAR, lept_parse(&v, "null x"));
-    EXPECT_EQ_INT(LEPT_NULL, lept_get_type(&v));
+    TEST("null x", LEPT_PARSE_ROOT_NOT_SINGULAR, LEPT_NULL);
 }
 
 static void test_parse() {
