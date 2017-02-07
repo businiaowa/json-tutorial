@@ -2,6 +2,11 @@
 #include <stdio.h>
 #include <assert.h>  /* assert() */
 #include <stdlib.h>  /* NULL */
+#include <math.h>  
+#include <errno.h>  
+
+#define ISDIGIT(ch)         ((ch) >= '0' && (ch) <= '9')
+#define ISDIGIT1TO9(ch)     ((ch) >= '1' && (ch) <= '9')
 
 typedef struct {
     const char* json;
@@ -46,11 +51,56 @@ static int lept_parse_false(lept_value* v, lept_context* c) {
     return LEPT_PARSE_OK;
 }
 
+static int lept_parse_number(lept_value* v, lept_context* c) {
+    //validate number
+    const char* p = c->json;
+    if(*p == '-') p++;
+    if(*p == '0') p++;
+    else {
+        //must be 1-9
+        if(!ISDIGIT1TO9(*p)) return LEPT_PARSE_INVALID_VALUE;
+        while(ISDIGIT(*p)) p++;
+    }
+    if (*p == '.') {
+        p++;
+        //must be 0-9 after .
+        if (!ISDIGIT(*p)) return LEPT_PARSE_INVALID_VALUE;
+        for (p++; ISDIGIT(*p); p++);
+    }
+    if (*p == 'e' || *p == 'E') {
+        p++;
+        if (*p == '+' || *p == '-') p++;
+        //must be 0 - 9 after '+' or '-'
+        if (!ISDIGIT(*p)) return LEPT_PARSE_INVALID_VALUE;
+        while(ISDIGIT(*p)) p++;
+    }
+
+    //parse to double
+    errno = 0;
+    v->n = strtod(c->json, NULL);
+    if (errno == ERANGE && (v->n == HUGE_VAL || v->n == -HUGE_VAL))
+        return LEPT_PARSE_NUMBER_TOO_BIG;
+    v->type = LEPT_NUMBER;
+    c->json = p;
+    return LEPT_PARSE_OK;
+}
+
 static int do_lept_parse(lept_value* v, lept_context* c) {
     switch(*c->json) {
         case 'n'  : return lept_parse_null(v, c);
         case 't'  : return lept_parse_true(v, c);
         case 'f'  : return lept_parse_false(v, c);
+        case '0'  : return lept_parse_number(v, c);
+        case '1'  : return lept_parse_number(v, c);
+        case '2'  : return lept_parse_number(v, c);
+        case '3'  : return lept_parse_number(v, c);
+        case '4'  : return lept_parse_number(v, c);
+        case '5'  : return lept_parse_number(v, c);
+        case '6'  : return lept_parse_number(v, c);
+        case '7'  : return lept_parse_number(v, c);
+        case '8'  : return lept_parse_number(v, c);
+        case '9'  : return lept_parse_number(v, c);
+        case '-'  : return lept_parse_number(v, c);
         case '\0' : return LEPT_PARSE_EXPECT_VALUE;
         default   : return LEPT_PARSE_INVALID_VALUE;
     }
