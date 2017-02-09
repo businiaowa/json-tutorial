@@ -18,7 +18,8 @@ static int test_pass = 0;
         }\
     } while(0)
 
-#define EXPECT_EQ(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual, "%g")
+#define EXPECT_EQ(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual, "%d")
+#define EXPECT_EQ_NUMBER(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual, "%.17g")
 #define EXPECT_EQ_STRING(expect, actual, alength)  EXPECT_EQ_BASE(sizeof(expect) - 1 == alength && memcmp(expect, actual, alength) == 0, expect, actual, "%s")
 
 #define TEST(s, r, t) \   
@@ -26,6 +27,14 @@ static int test_pass = 0;
         lept_value v;\
         v.type = LEPT_NULL;\
         EXPECT_EQ(r, lept_parse(&v, s));\
+        EXPECT_EQ(t, lept_get_type(&v));\
+    } while(0)
+
+#define TEST_NUMBER(s, r, t) \   
+    do {\
+        lept_value v;\
+        v.type = LEPT_NULL;\
+        EXPECT_EQ_NUMBER(r, lept_parse(&v, s));\
         EXPECT_EQ(t, lept_get_type(&v));\
     } while(0)
     
@@ -52,25 +61,25 @@ static void test_parse_false() {
 }
 
 static void test_parse_number() {
-    TEST("0", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("-0", LEPT_PARSE_OK, LEPT_NUMBER );
-    TEST("-0.0", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("1", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("-1", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("1.5", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("-1.5", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("3.1416", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("1E10", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("1e10", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("1E+10", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("1E-10", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("-1E10", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("-1e10", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("-1E+10", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("-1E-10", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("1.234E+10", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("1.234E-10", LEPT_PARSE_OK, LEPT_NUMBER);
-    TEST("1e-10000", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("0", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("-0", LEPT_PARSE_OK, LEPT_NUMBER );
+    TEST_NUMBER("-0.0", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("1", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("-1", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("1.5", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("-1.5", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("3.1416", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("1E10", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("1e10", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("1E+10", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("1E-10", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("-1E10", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("-1e10", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("-1E+10", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("-1E-10", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("1.234E+10", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("1.234E-10", LEPT_PARSE_OK, LEPT_NUMBER);
+    TEST_NUMBER("1e-10000", LEPT_PARSE_OK, LEPT_NUMBER);
 }
 
 static void test_parse_string() { 
@@ -111,12 +120,18 @@ static void test_parse_invalid_string_escape() {
     TEST("\"\\x12\"", LEPT_PARSE_INVALID_STRING_ESCAPE, LEPT_NULL);
 }
 
+static void test_parse_array() {
+    TEST("[]", LEPT_PARSE_OK, LEPT_ARRAY);
+    TEST("[ null , false , true , 123 , \"abc\" ]", LEPT_PARSE_OK, LEPT_ARRAY);
+}
+
 static void test_parse() {
     test_parse_null();
     test_parse_true();
     test_parse_false();
     test_parse_number();
     test_parse_string();
+    test_parse_array();
     test_parse_expect_value();
     test_parse_invalid_value();
     test_parse_root_not_singular();
